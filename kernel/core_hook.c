@@ -1162,9 +1162,6 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 	}
 #endif
 
-#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-out_ksu_try_umount:
-#endif
 	if (!ksu_uid_should_umount(new_uid.val)) {
 		return 0;
 	} else {
@@ -1173,15 +1170,6 @@ out_ksu_try_umount:
 #endif
 	}
 
-	// check old process's selinux context, if it is not zygote, ignore it!
-	// because some su apps may setuid to untrusted_app but they are in global mount namespace
-	// when we umount for such process, that is a disaster!
-	bool is_zygote_child = is_zygote(old->security);
-	if (!is_zygote_child) {
-		pr_info("handle umount ignore non zygote child: %d\n",
-			current->pid);
-		return 0;
-	}
 #ifdef CONFIG_KSU_DEBUG
 	// umount the target mnt
 	pr_info("handle umount for uid: %d, pid: %d\n", new_uid.val,
